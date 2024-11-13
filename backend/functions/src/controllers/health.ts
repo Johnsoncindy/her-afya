@@ -7,7 +7,7 @@ export const getHealthTips = async (req: Request, res: Response) => {
     const tips = tipsSnapshot.docs.map((doc) => doc.data());
     res.status(200).json({tips});
   } catch (error) {
-    res.status(500).json({error: "Failed to fetch health tips"});
+    res.status(500).json({error});
   }
 };
 
@@ -40,7 +40,7 @@ export const addHealthTip = async (
     return res.status(201).json({message: "Health tip added successfully"});
   } catch (error) {
     // Catch errors and send failure response
-    return res.status(500).json({error: "Failed to add health tip"});
+    return res.status(500).json({error});
   }
 };
 
@@ -74,7 +74,7 @@ export const updateHealthTip = async (
 
     return res.status(200).json({message: "Health tip updated successfully"});
   } catch (error) {
-    return res.status(500).json({error: "Failed to update health tip"});
+    return res.status(500).json({error});
   }
 };
 
@@ -97,6 +97,6 @@ export const deleteHealthTip = async (
 
     return res.status(200).json({message: "Health tip deleted successfully"});
   } catch (error) {
-    return res.status(500).json({error: "Failed to delete health tip"});
+    return res.status(500).json({error});
   }
 };

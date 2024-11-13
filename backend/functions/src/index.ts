@@ -5,6 +5,10 @@ import resourcesRoutes from "./routes/resourcesRoutes";
 import chatRoutes from "./routes/chatRoutes";
 import emergencyRoutes from "./routes/emergencyRoutes";
 import supportRoutes from "./routes/supportRoutes";
+import authRoutes from "./routes/authRoutes";
+import periodTracking from "./routes/periodTracking";
+import pregnancyRoutes from "./routes/pregnancy";
+import dataExportRoutes from "./routes/dataExport";
 /*
 import healthToolsRoutes from './routes/healthToolsRoutes';
 import profileRoutes from './routes/profileRoutes'; */
@@ -17,6 +21,10 @@ app.use("/resources", resourcesRoutes);
 app.use("/api", chatRoutes);
 app.use("/emergency-contacts", emergencyRoutes);
 app.use("/support", supportRoutes);
+app.use("/auth", authRoutes);
+app.use("/period-tracking", periodTracking);
+app.use("/pregnancy", pregnancyRoutes);
+app.use("/data-export", dataExportRoutes);
 /*
 app.use('/health-tools', healthToolsRoutes);
 app.use('/profile', profileRoutes); */

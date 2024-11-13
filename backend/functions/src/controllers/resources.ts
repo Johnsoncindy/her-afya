@@ -7,7 +7,7 @@ export const getHealthArticles = async (req: Request, res: Response) => {
     const articles = articlesSnapshot.docs.map((doc) => doc.data());
     res.status(200).json({articles});
   } catch (error) {
-    res.status(500).json({error: "Failed to fetch health articles"});
+    res.status(500).json({error});
   }
 };
 
@@ -43,7 +43,7 @@ export const addHealthArticle = async (
       .status(201)
       .json({message: "Health article added successfully"});
   } catch (error) {
-    return res.status(500).json({error: "Failed to add health article"});
+    return res.status(500).json({error});
   }
 };
 
@@ -75,7 +75,7 @@ export const updateHealthArticle = async (req: Request, res: Response) => {
       .status(200)
       .json({message: "Health article updated successfully"});
   } catch (error) {
-    return res.status(500).json({error: "Failed to update health article"});
+    return res.status(500).json({error});
   }
 };
 
@@ -95,6 +95,6 @@ export const deleteHealthArticle = async (req: Request, res: Response) => {
       .status(200)
       .json({message: "Health article deleted successfully"});
   } catch (error) {
-    return res.status(500).json({error: "Failed to delete health article"});
+    return res.status(500).json({error});
   }
 };
