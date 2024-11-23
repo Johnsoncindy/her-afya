@@ -56,15 +56,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         "directories": ["documents"]
       }
-    ],
-    [
-      "expo-build-properties",
-      {
-        ios: {
-          useFrameworks: "static",
-        },
-      },
-    ],
+    ]
   ],
   experiments: {
     typedRoutes: true,
