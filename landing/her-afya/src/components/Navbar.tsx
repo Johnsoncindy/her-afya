@@ -20,6 +20,18 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
+          <Link 
+              href="#about" 
+              className="text-custom-text hover:text-tint-light dark:text-custom-darkText dark:hover:text-tint-dark"
+            >
+              About
+            </Link>
+            <Link 
+              href="#team" 
+              className="text-custom-text hover:text-tint-light dark:text-custom-darkText dark:hover:text-tint-dark"
+            >
+              Team
+            </Link>
             <Link 
               href="#features" 
               className="text-custom-text hover:text-tint-light dark:text-custom-darkText dark:hover:text-tint-dark"
@@ -58,6 +70,20 @@ export default function Navbar() {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 bg-custom-background dark:bg-custom-darkBg">
+          <Link
+              href="#about"
+              className="block px-3 py-2 text-custom-text hover:text-tint-light dark:text-custom-darkText dark:hover:text-tint-dark"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              About
+            </Link>
+            <Link
+              href="#team"
+              className="block px-3 py-2 text-custom-text hover:text-tint-light dark:text-custom-darkText dark:hover:text-tint-dark"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Team
+            </Link>
             <Link
               href="#features"
               className="block px-3 py-2 text-custom-text hover:text-tint-light dark:text-custom-darkText dark:hover:text-tint-dark"
