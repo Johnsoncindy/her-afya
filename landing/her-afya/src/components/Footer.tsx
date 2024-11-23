@@ -42,8 +42,8 @@ export default function Footer() {
               <h3 className="text-lg font-semibold mb-4">Contact</h3>
               <ul className="space-y-2">
                 <li>
-                  <a href="mailto:support@herafya.com" className="hover:text-[#40E0D0]">
-                    support@herafya.com
+                  <a href="mailto:herafya93@gmail.com" className="hover:text-[#40E0D0]">
+                  herafya93@gmail.com
                   </a>
                 </li>
               </ul>
@@ -57,4 +57,3 @@ export default function Footer() {
       </footer>
     )
   }
-  

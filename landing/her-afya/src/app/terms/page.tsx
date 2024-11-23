@@ -90,7 +90,7 @@ export default function Terms() {
               Our support team is ready to help clarify any concerns.
             </p>
             <Link 
-              href="mailto:support@herafya.com"
+              href="mailto:herafya93@gmail.com"
               className="inline-flex items-center gap-2 px-6 py-3 bg-tint-light dark:bg-tint-dark text-white rounded-full hover:opacity-90 transition-opacity"
             >
               Contact Support

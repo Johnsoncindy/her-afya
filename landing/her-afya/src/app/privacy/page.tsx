@@ -101,7 +101,7 @@ export default function PrivacyPolicy() {
               We're here to help! Reach out to our support team.
             </p>
             <Link 
-              href="mailto:support@herafya.com"
+              href="mailto:herafya93@gmail.com"
               className="inline-flex items-center gap-2 px-6 py-3 bg-tint-light dark:bg-tint-dark text-white rounded-full hover:opacity-90 transition-opacity"
             >
               <Bell className="w-5 h-5" />

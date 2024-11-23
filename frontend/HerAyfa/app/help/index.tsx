@@ -13,7 +13,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 
-const SUPPORT_EMAIL = "support@herafya.com";
+const SUPPORT_EMAIL = "herafya93@gmail.com";
 
 export default function HelpCenterScreen() {
   const colorScheme = useColorScheme();

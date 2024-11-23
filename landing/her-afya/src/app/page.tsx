@@ -4,6 +4,7 @@ import Hero from '@/components/sections/Hero'
 import HowItWorks from '@/components/sections/HowItWorks'
 import Download from '@/components/sections/Download'
 import Testimonials from '@/components/sections/Testimonials'
+import FAQ from '@/components/sections/FAQ'
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       <Features />
       <HowItWorks />
       <Testimonials />
+      <FAQ />
       <Download />
     </main>
   )
