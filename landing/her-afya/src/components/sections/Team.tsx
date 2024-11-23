@@ -59,7 +59,7 @@ export default function Team() {
     ]
     
     return (
-      <section id="team" className="py-20 bg-custom-background dark:bg-custom-darkBg">
+      <section id="team" className="py-20  bg-custom-background/80 dark:bg-custom-darkBg/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <motion.div
@@ -248,7 +248,7 @@ export default function Team() {
           </motion.div> */}
   
           {/* Team Composition */}
-          <div className="bg-tint-light/10 dark:bg-tint-dark/10 rounded-2xl p-12">
+          <div className="bg-custom-background/30 dark:bg-custom-darkBg/30 rounded-2xl p-12">
             <h3 className="text-2xl font-bold text-custom-text dark:text-custom-darkText text-center mb-12">
               Our Growing Team
             </h3>

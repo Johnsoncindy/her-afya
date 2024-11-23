@@ -49,7 +49,7 @@ export default function Features() {
   })
 
   return (
-    <section id="features" className="py-20 bg-custom-background/50 dark:bg-custom-darkBg/50">
+    <section id="features" className="py-20 bg-custom-background/80 dark:bg-custom-darkBg/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
