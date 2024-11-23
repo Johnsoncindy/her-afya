@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+:root {
+  --tint-light: #0a7ea4;
+  --tint-dark: #40E0D0;
+  --secondary-light: #F4A261;
+  --secondary-dark: #E76F51;
+}
+
+@layer base {
+  * {
+    @apply transition-colors duration-200;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tint-light: #0a7ea4;
+    --tint-dark: #40E0D0;
+    --secondary-light: #F4A261;
+    --secondary-dark: #E76F51;
+  }
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}

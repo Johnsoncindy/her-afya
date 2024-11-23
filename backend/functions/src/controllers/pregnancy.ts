@@ -4,7 +4,7 @@ import * as admin from "firebase-admin";
 import {
   PregnancyData,
   PregnancySymptom,
-  Appointment,
+  AppointmentReminder,
   WeightEntry,
   KickCount,
   ChecklistItem,
@@ -120,24 +120,56 @@ export const addAppointment = async (
 ): Promise<Response> => {
   try {
     const {userId} = req.params;
-    const appointment: Appointment = req.body;
+    const appointment = req.body;
     const timestamp = admin.firestore.Timestamp.now();
 
-    await db
-      .collection("pregnancyData")
-      .doc(userId)
-      .update({
-        appointments: admin.firestore.FieldValue.arrayUnion({
-          ...appointment,
-          createdAt: timestamp,
-        }),
-        updatedAt: timestamp,
-      });
+    // Start a batch write
+    const batch = db.batch();
 
-    return res.status(201).json({message: "Appointment added successfully"});
+    // Add to pregnancyData collection
+    const pregnancyRef = db.collection("pregnancyData").doc(userId);
+    batch.update(pregnancyRef, {
+      appointments: admin.firestore.FieldValue.arrayUnion({
+        ...appointment,
+        createdAt: timestamp,
+      }),
+      updatedAt: timestamp,
+    });
+
+    // Create reminder document
+    const reminderRef = db.collection("reminders").doc();
+    const reminder: AppointmentReminder = {
+      userId,
+      id: appointment.id,
+      type: appointment.type,
+      title: appointment.title || "Doctor's Appointment",
+      date: appointment.date,
+      time: appointment.time,
+      notes: appointment.notes,
+      category: "appointment",
+      description: `
+      Appointment with ${appointment.doctor || "doctor"}
+      ${appointment.notes ? `: ${appointment.notes}` : ""}`,
+      doctor: appointment.doctor,
+      location: appointment.location,
+      completed: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    batch.set(reminderRef, reminder);
+
+    await batch.commit();
+    return res.status(201).json({
+      message: "Appointment and reminder added successfully",
+    });
   } catch (error) {
     console.error("Error adding appointment:", error);
-    return res.status(500).json({error: "Failed to add appointment"});
+    const errorMessage =
+    error instanceof Error ? error.message : "An unknown error occurred";
+    return res.status(500).json({
+      error: errorMessage,
+      details: process.env.NODE_ENV === "development" ? error : undefined,
+    });
   }
 };
 

@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes";
 import periodTracking from "./routes/periodTracking";
 import pregnancyRoutes from "./routes/pregnancy";
 import dataExportRoutes from "./routes/dataExport";
+import remindersRoutes from "./routes/reminder";
 /*
 import healthToolsRoutes from './routes/healthToolsRoutes';
 import profileRoutes from './routes/profileRoutes'; */
@@ -24,6 +25,7 @@ app.use("/support", supportRoutes);
 app.use("/auth", authRoutes);
 app.use("/period-tracking", periodTracking);
 app.use("/pregnancy", pregnancyRoutes);
+app.use("/reminders", remindersRoutes);
 app.use("/data-export", dataExportRoutes);
 /*
 app.use('/health-tools', healthToolsRoutes);

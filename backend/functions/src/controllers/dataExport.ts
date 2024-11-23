@@ -1,21 +1,16 @@
+import {format} from "date-fns";
 import {Request, Response} from "express";
 import PDFDocument from "pdfkit";
-import {format} from "date-fns";
-import db from "../utils/db";
 import {
-  Appointment,
-  CycleEntry,
   PeriodTracking,
   PregnancyJourney,
-  Symptom,
   UserHealthData,
-  WeightEntry,
 } from "../types/dataExport";
+import db from "../utils/db";
 
 /**
  * Exports user health data as a PDF document.
- * Generates a comprehensive report
- * including pregnancy journey and period tracking data.
+ * Generates a comprehensive report including pregnancy journey etc.
  *
  * @param {Request} req - Express request object containing userId in params
  * @param {Response} res - Express response object used to send the PDF
@@ -29,171 +24,234 @@ export const exportUserDataAsPDF = async (
     const {userId} = req.params;
     const data = await fetchUserHealthData(userId);
     const doc = new PDFDocument({size: "A4", margin: 50});
+    const chunks: Buffer[] = [];
 
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=health_report_
-      ${format(new Date(), "yyyy-MM-dd")}.pdf`
-    );
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("end", () => {
+      const pdfBuffer = Buffer.concat(chunks);
+      const base64Data = pdfBuffer.toString("base64");
+      res.json({
+        data: base64Data,
+        filename: `health_report_${format(new Date(), "yyyy-MM-dd")}.pdf`,
+      });
+    });
 
-    doc.pipe(res);
-
-    // Title Page
-    doc
-      .fontSize(24)
-      .font("Helvetica-Bold")
-      .text("Health Report", {align: "center"})
-      .moveDown();
-
-    doc
-      .fontSize(12)
-      .font("Helvetica")
-      .text(`Generated: ${format(new Date(), "MMMM d, yyyy")}`, {
-        align: "center",
-      })
-      .moveDown(2);
+    // Title Section
+    addCompactTitle(doc);
 
     // Pregnancy Journey Section
     if (data.pregnancyJourney) {
-      doc.addPage();
-
-      // Section Header
       addSectionHeader(doc, "Pregnancy Journey");
 
-      // Basic Information
-      addSubsectionHeader(doc, "Basic Information");
-      doc
-        .fontSize(12)
-        .text(
-          `Due Date: ${format(
-            new Date(data.pregnancyJourney.dueDate),
-            "MMMM d, yyyy"
-          )}`
-        )
-        .text(`Current Week: ${data.pregnancyJourney.currentWeek}`)
-        .moveDown();
+      // Calculate current week based on due date
+      const dueDate = new Date(data.pregnancyJourney.dueDate);
+      const lastPeriod = new Date(data.pregnancyJourney.lastPeriodDate);
+      const currentWeek = Math.floor(
+        (new Date().getTime() -
+          lastPeriod.getTime()) / (7 * 24 * 60 * 60 * 1000)
+      );
 
-      // Weight Tracking Summary
+      // Basic Information Grid
+      const startY = doc.y;
+      const colWidth = (doc.page.width - 100) / 2;
+
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(12)
+        .text("Due Date", 50, startY)
+        .font("Helvetica")
+        .text(format(dueDate, "MMMM d, yyyy"), 50, doc.y);
+
+      doc
+        .font("Helvetica-Bold")
+        .text("Current Week", 50 + colWidth, startY)
+        .font("Helvetica")
+        .text(
+          `Week ${currentWeek >= 0 ? currentWeek : 0}`,
+          50 + colWidth,
+          doc.y - 14
+        );
+
+      doc.moveDown(2);
+
+      // Weight Section - Single Entry Handling
       if (data.pregnancyJourney.weightEntries?.length) {
-        addSubsectionHeader(doc, "Weight Tracking Summary");
+        addSubsectionHeader(doc, "Weight Tracking");
 
         const weights = data.pregnancyJourney.weightEntries;
-        const startWeight = weights[0].weight;
-        const currentWeight = weights[weights.length - 1].weight;
-        const totalGain = currentWeight - startWeight;
+        const latestWeight = weights[weights.length - 1];
 
         doc
-          .text(`Starting Weight: ${startWeight} kg`)
-          .text(`Current Weight: ${currentWeight} kg`)
-          .text(`Total Weight Gain: ${totalGain.toFixed(1)} kg`)
-          .moveDown();
+          .fontSize(10)
+          .text(`Current Weight: ${latestWeight.weight} kg`)
+          .text(`Last Recorded: ${format(
+            new Date(latestWeight.date), "MMMM d, yyyy")}`);
 
-        doc.text("Recent Weight Entries:", {underline: true}).moveDown();
-        weights.slice(-5).forEach((entry: WeightEntry) => {
-          doc.text(
-            `${format(new Date(entry.date), "MMM d, yyyy")}: ${entry.weight} kg`
-          );
-        });
         doc.moveDown();
       }
 
-      // Appointments Summary
-      if (data.pregnancyJourney.appointments?.length) {
-        addSubsectionHeader(doc, "Upcoming Appointments");
-
-        const futureAppointments = data.pregnancyJourney.appointments
-          .filter((apt) => new Date(apt.date) > new Date())
-          .sort(
-            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-          );
-
-        futureAppointments.forEach((apt: Appointment) => {
-          doc
-            .font("Helvetica-Bold")
-            .text(format(new Date(apt.date), "MMM d, yyyy h:mm a"))
-            .font("Helvetica")
-            .text(`Type: ${apt.type}`)
-            .text(`Doctor: ${apt.doctor}`)
-            .text(`Location: ${apt.location}`)
-            .text(`Notes: ${apt.notes || "None"}`)
-            .moveDown();
-        });
-      }
-
-      // Recent Symptoms
+      // Symptoms Section with improved handling
       if (data.pregnancyJourney.symptoms?.length) {
         addSubsectionHeader(doc, "Recent Symptoms");
 
-        const recentSymptoms = data.pregnancyJourney.symptoms
-          .sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-          )
-          .slice(0, 10);
+        const symptoms = data.pregnancyJourney.symptoms;
+        const symptomsMap = new Map<string, {count: number; lastDate: Date}>();
 
-        recentSymptoms.forEach((symptom: Symptom) => {
-          doc
-            .font("Helvetica-Bold")
-            .text(format(new Date(symptom.date), "MMM d, yyyy"))
-            .font("Helvetica")
-            .text(`${symptom.type} - Severity: ${symptom.severity}`)
-            .text(`Notes: ${symptom.notes || "None"}`)
-            .moveDown();
+        // Aggregate symptoms
+        symptoms.forEach((symptom) => {
+          const existing = symptomsMap.get(symptom.type);
+          const date = new Date(symptom.date);
+          if (!existing || date > existing.lastDate) {
+            symptomsMap.set(symptom.type, {
+              count: (existing?.count || 0) + 1,
+              lastDate: date,
+            });
+          }
         });
+
+        // Display symptoms summary
+        symptomsMap.forEach((data, type) => {
+          doc
+            .fontSize(10)
+            .font("Helvetica-Bold")
+            .text(type, {continued: true})
+            .font("Helvetica")
+            .text(
+              ` - Last recorded: ${format(data.lastDate, "MMM d, yyyy")}` +
+              (data.count > 1 ? ` (${data.count} occurrences)` : "")
+            );
+        });
+
+        doc.moveDown();
+      }
+
+      // Kick Counts Section
+      if (data.pregnancyJourney.kickCounts?.length) {
+        addSubsectionHeader(doc, "Kick Count Summary");
+
+        const kicks = data.pregnancyJourney.kickCounts;
+        const totalKicks = kicks.reduce((sum, k) => sum + (k.count || 0), 0);
+        const sessionsCount = kicks.length;
+
+        doc
+          .fontSize(10)
+          .text(`Total Recorded Kicks: ${totalKicks}`)
+          .text(`Number of Sessions: ${sessionsCount}`)
+          .text(`Last Session: ${format(
+            new Date(kicks[kicks.length - 1].date), "MMM d, yyyy")}`);
+
+        doc.moveDown();
+      }
+
+      // Appointments Section with better date handling
+      if (data.pregnancyJourney.appointments?.length) {
+        addSubsectionHeader(doc, "Upcoming Appointments");
+
+        const now = new Date();
+        const appointments = data.pregnancyJourney.appointments
+          .filter((apt) => new Date(apt.date) > now)
+          .sort((a, b) => new Date(a.date).getTime() -
+            new Date(b.date).getTime());
+
+        if (appointments.length > 0) {
+          appointments.forEach((apt) => {
+            const aptDate = new Date(apt.date);
+            doc
+              .fontSize(10)
+              .font("Helvetica-Bold")
+              .text(format(aptDate, "MMM d, yyyy h:mm a"), {continued: true})
+              .font("Helvetica")
+              .text(` - ${apt.type.replace(/_/g, " ").toUpperCase()}`)
+              .text(`With: Dr. ${apt.doctor} at ${apt.location}`, {indent: 20})
+              .text(apt.notes ? `Notes: ${apt.notes}` : "", {indent: 20});
+          });
+        } else {
+          doc.text("No upcoming appointments scheduled");
+        }
+
+        doc.moveDown();
       }
     }
 
-    // Period Tracking Section
-    if (data.periodTracking) {
+    // Period Tracking Section with improved validation
+    if (data.periodTracking?.cycleHistory?.length) {
       doc.addPage();
+      addSectionHeader(doc, "Cycle Analysis");
 
-      addSectionHeader(doc, "Period Tracking");
+      const cycles = data.periodTracking.cycleHistory
+        .filter((c) => c.length > 0) // Filter out invalid cycles
+        .sort((a, b) => new Date(b.startDate).getTime() -
+          new Date(a.startDate).getTime());
 
-      // Cycle Summary
-      if (data.periodTracking.cycleHistory?.length) {
-        const cycles = data.periodTracking.cycleHistory;
+      if (cycles.length > 0) {
+        // Calculate valid statistics
         const lengths = cycles.map((c) => c.length);
         const avgLength = lengths.reduce((a, b) => a + b, 0) / lengths.length;
 
-        addSubsectionHeader(doc, "Cycle Summary");
         doc
           .fontSize(12)
           .text(`Average Cycle Length: ${avgLength.toFixed(1)} days`)
-          .text(`Shortest Cycle: ${Math.min(...lengths)} days`)
-          .text(`Longest Cycle: ${Math.max(...lengths)} days`)
-          .moveDown();
+          .text(`Recent Cycles: ${cycles.length}`);
 
-        // Recent Cycles
+        doc.moveDown();
+
+        // Recent cycles in compact format
         addSubsectionHeader(doc, "Recent Cycles");
-
-        cycles.slice(-5).forEach((cycle: CycleEntry) => {
+        cycles.slice(0, 5).forEach((cycle) => {
           doc
-            .font("Helvetica-Bold")
-            .text(format(new Date(cycle.startDate), "MMM d, yyyy"))
-            .font("Helvetica")
-            .text(`To: ${format(new Date(cycle.endDate), "MMM d, yyyy")}`)
-            .text(`Length: ${cycle.length} days`)
-            .text(`Symptoms: ${cycle.symptoms.length}`)
-            .moveDown();
+            .fontSize(10)
+            .text(
+              `${format(new Date(cycle.startDate), "MMM d")} - ` +
+              `${format(new Date(cycle.endDate), "MMM d, yyyy")} ` +
+              `(${cycle.length} days)`
+            );
         });
+      } else {
+        doc.text("Not enough cycle data for analysis");
       }
     }
 
     // Footer
     doc
-      .fontSize(10)
+      .moveDown()
+      .fontSize(9)
       .text(
-        "This report is for informational purposes only. " +
-          "Please consult with your healthcare provider for medical advice.",
+        "This report contains your personal health information. " +
+        "Please consult with your healthcare provider for medical advice.",
         {align: "center"}
       );
 
+    addFooter(doc);
     doc.end();
   } catch (error) {
     console.error("Error generating PDF:", error);
-    res.status(500).json({error: "Failed to generate PDF report"});
+    res.status(500).json({
+      error: "Failed to generate health report",
+      details: process.env.NODE_ENV === "development" ? error : undefined,
+    });
   }
 };
+
+/**
+ * Adds a compact title section to the PDF document.
+ *
+ * @param {PDFKit.PDFDocument} doc - PDFKit document instance
+ * @return {void} Nothing
+ */
+function addCompactTitle(doc: PDFKit.PDFDocument): void {
+  // Add decorative header
+  doc.rect(0, 0, doc.page.width, 80).fill("#0a7ea4");
+
+  // Add title and date in header
+  doc
+    .fontSize(24)
+    .fillColor("white")
+    .text("Health Report", 50, 25)
+    .fontSize(12)
+    .text(`Generated: ${format(new Date(), "MMMM d, yyyy")}`, 50, doc.y)
+    .fillColor("black") // Reset color for rest of document
+    .moveDown();
+}
 
 /**
  * Adds a section header to the PDF document with consistent styling.
@@ -228,6 +286,33 @@ function addSubsectionHeader(doc: PDFKit.PDFDocument, text: string): void {
 }
 
 /**
+ * Adds page numbers to the footer of each page in the PDF document.
+ *
+ * @param {PDFKit.PDFDocument} doc - PDFKit document instance
+ * @return {void} Nothing
+ */
+function addFooter(doc: PDFKit.PDFDocument): void {
+  try {
+    const range = doc.bufferedPageRange();
+    for (let i = range.start; i < range.start + range.count; i++) {
+      doc.switchToPage(i);
+
+      // Add page number
+      doc
+        .fontSize(8)
+        .text(
+          `Page ${i + 1} of ${range.count}`,
+          0,
+          doc.page.height - 20,
+          {align: "center"}
+        );
+    }
+  } catch (error) {
+    console.error("Error adding page numbers:", error);
+  }
+}
+
+/**
  * Fetches user health data from the database.
  *
  * @param {string} userId - User ID to fetch data for
@@ -236,17 +321,15 @@ function addSubsectionHeader(doc: PDFKit.PDFDocument, text: string): void {
 const fetchUserHealthData = async (userId: string): Promise<UserHealthData> => {
   try {
     const [periodData, pregnancyData] = await Promise.all([
-      db.collection("periodData").doc(userId).get(),
+      db.collection("userPeriodData").doc(userId).get(),
       db.collection("pregnancyData").doc(userId).get(),
     ]);
 
     return {
       periodTracking: periodData.exists ?
-        (periodData.data() as PeriodTracking) :
-        null,
+        (periodData.data() as PeriodTracking) : null,
       pregnancyJourney: pregnancyData.exists ?
-        (pregnancyData.data() as PregnancyJourney):
-        null,
+        (pregnancyData.data() as PregnancyJourney) : null,
     };
   } catch (error) {
     console.error("Error fetching user health data:", error);

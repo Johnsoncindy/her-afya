@@ -3,7 +3,7 @@ import { View, StyleSheet, Animated, Easing } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 
-const HeartLoading = ({ size = 48, color = "#FF4B4B" }) => {
+const HeartLoading = ({ size = 28, color = "#FF4B4B" }) => {
   // Create animated value for scaling
   const scaleValue = new Animated.Value(1);
   
@@ -99,7 +99,7 @@ const HeartLoading = ({ size = 48, color = "#FF4B4B" }) => {
           },
         ]}
       >
-      <FontAwesome5 name="heartbeat" size={28} color={color} />
+      <FontAwesome5 name="heartbeat" size={size} color={color} />
       </Animated.View>
     </View>
   );

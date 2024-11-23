@@ -5,10 +5,19 @@ import { styles } from "./Styles";
 import { CycleData } from "./types";
 
 interface CycleCardProps {
-    cycle: CycleData;
-  }
+  cycle: CycleData;
+}
+
+export const CycleCard = ({ cycle }: CycleCardProps) => {
+  // Validate dates before rendering
+  const isValidDate = (date: Date) => date instanceof Date && !isNaN(date.getTime());
   
-  export const CycleCard = ({ cycle }: CycleCardProps) => (
+  if (!isValidDate(cycle.startDate) || !isValidDate(cycle.endDate)) {
+    console.log('Invalid dates in cycle:', cycle);
+    return null;
+  }
+
+  return (
     <ThemedView style={styles.cycleCard}>
       <ThemedText style={styles.cycleDate}>
         {format(cycle.startDate, "MMM d")} - {format(cycle.endDate, "MMM d")}
@@ -21,4 +30,4 @@ interface CycleCardProps {
       )}
     </ThemedView>
   );
-  
+};

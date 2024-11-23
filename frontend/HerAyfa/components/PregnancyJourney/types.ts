@@ -12,7 +12,17 @@ export interface PregnancyData {
   memories: Memory[];
 }
 
-export interface Appointment {
+interface BaseReminder {
+  userId?: string;
+  id: string;
+  title?: string;
+  date?: Date;
+  time?: string;
+  description?: string;
+  completed?: boolean;
+}
+
+export interface Appointment extends BaseReminder {
   id: string;
   date: Date;
   type: AppointmentType;

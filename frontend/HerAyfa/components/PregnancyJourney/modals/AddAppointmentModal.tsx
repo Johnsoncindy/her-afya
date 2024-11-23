@@ -26,44 +26,16 @@ export const AddAppointmentModal = ({ visible, onClose, onSubmit }: AddAppointme
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   
-  const [date, setDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState(new Date());
   const [type, setType] = useState<AppointmentType>('checkup');
+  const [title, setTitle] = useState('');
   const [doctor, setDoctor] = useState('');
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
   
-  // Separate state for date and time pickers
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState(new Date());
-
-  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
-    if (selectedDate) {
-      setSelectedDate(selectedDate);
-      // Combine date with existing time
-      const newDateTime = new Date(selectedDate);
-      newDateTime.setHours(date.getHours(), date.getMinutes());
-      setDate(newDateTime);
-      
-      // On Android, show time picker after date is selected
-      if (Platform.OS === 'android') {
-        setShowTimePicker(true);
-      }
-    }
-  };
-
-  const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
-    setShowTimePicker(Platform.OS === 'ios');
-    if (selectedTime) {
-      setSelectedTime(selectedTime);
-      // Combine existing date with new time
-      const newDateTime = new Date(date);
-      newDateTime.setHours(selectedTime.getHours(), selectedTime.getMinutes());
-      setDate(newDateTime);
-    }
-  };
 
   const handleDateTimePress = () => {
     if (Platform.OS === 'ios') {
@@ -74,15 +46,44 @@ export const AddAppointmentModal = ({ visible, onClose, onSubmit }: AddAppointme
     }
   };
 
+  const handleDateChange = (event: DateTimePickerEvent, date?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (date) {
+      setSelectedDate(date);
+      
+      if (Platform.OS === 'android') {
+        setShowTimePicker(true);
+      }
+    }
+  };
+
+  const handleTimeChange = (event: DateTimePickerEvent, time?: Date) => {
+    setShowTimePicker(Platform.OS === 'ios');
+    if (time) {
+      setSelectedTime(time);
+    }
+  };
+
   const handleSubmit = () => {
-    onSubmit({
+    // Combine date and time for the final datetime
+    const combinedDateTime = new Date(selectedDate);
+    combinedDateTime.setHours(selectedTime.getHours());
+    combinedDateTime.setMinutes(selectedTime.getMinutes());
+
+    const appointment: Appointment = {
       id: Date.now().toString(),
-      date,
       type,
+      title: title || `${type.charAt(0).toUpperCase() + type.slice(1)} Appointment`, 
+      date: combinedDateTime,
+      time: format(combinedDateTime, 'HH:mm'),
       doctor,
       location,
       notes,
-    });
+      description: `Appointment with ${doctor}${notes ? `: ${notes}` : ''}`,
+      completed: false,
+    };
+
+    onSubmit(appointment);
     onClose();
   };
 
@@ -113,13 +114,13 @@ export const AddAppointmentModal = ({ visible, onClose, onSubmit }: AddAppointme
             Add Appointment
           </ThemedText>
 
-          {/* Date/Time Selector */}
-          <Pressable 
+         {/* Date/Time Selector */}
+         <Pressable 
             style={[styles.datePickerButton, dynamicStyles.typeButton]} 
             onPress={handleDateTimePress}
           >
             <ThemedText style={[styles.datePickerButtonText, dynamicStyles.text]}>
-              {format(date, 'MMM d, yyyy h:mm a')}
+              {format(selectedDate, 'MMM d, yyyy h:mm a')}
             </ThemedText>
           </Pressable>
 

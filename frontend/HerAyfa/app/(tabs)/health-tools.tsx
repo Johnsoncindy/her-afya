@@ -86,7 +86,7 @@ const ToolCard = ({
 
 export default function HealthToolsScreen() {
   const [selectedSegment, setSelectedSegment] = useState(0);
-  const segments = ["Women's Health"];
+  const segments = ["Women's Health", "Reminders"];
 
   // New Women's Health Content
   const WomensHealthContent = () => (
@@ -126,13 +126,13 @@ export default function HealthToolsScreen() {
         icon="medical"
         title="Medication Reminders"
         description="Set up your medication schedule"
-        onPress={() => {/* Navigate to medication reminders */}}
+        onPress={() => router.push('/add-reminder')}
       />
       <ToolCard
         icon="calendar"
         title="Appointment Reminders"
         description="Track your upcoming health appointments"
-        onPress={() => {/* Navigate to appointment reminders */}}
+        onPress={() => router.push("/reminders")}
       />
     </ThemedView>
   );
@@ -150,8 +150,6 @@ export default function HealthToolsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen options={{ headerShown: false }} />
-      
       <ThemedView style={styles.header}>
         <ThemedText style={styles.headerTitle}>Health Tools</ThemedText>
       </ThemedView>
@@ -179,7 +177,6 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 16,
-    paddingTop: 60,
     paddingBottom: 20,
   },
   headerTitle: {

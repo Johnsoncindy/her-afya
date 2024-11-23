@@ -275,4 +275,10 @@ export const styles = StyleSheet.create({
   completeDot: {
     backgroundColor: '#9E9E9E', // Gray for completed
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  }
   });

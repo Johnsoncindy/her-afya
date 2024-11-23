@@ -21,6 +21,11 @@ export interface HealthTip {
   id: string;
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface HealthArticle {
   category: string;
   title: string;
@@ -63,16 +68,88 @@ export interface GooglePlaceService {
   };
 }
 
+export interface GeminiResponse {
+  botReply: {
+    candidates: [{
+      content: {
+        parts: [{
+          text: string;
+        }];
+      };
+    }];
+    usageMetadata: {
+      totalTokenCount: number;
+    };
+  };
+}
+
+export interface MedicationReminder {
+  id: string;
+  userId: string;
+  category: 'medication';
+  title: string;
+  date: string;
+  time: string;
+  description: string;
+  medicationName: string;
+  frequency: string;
+  dosage: string;
+  endDate: string;
+  completed: boolean;
+  createdAt: {
+    _seconds: number;
+    _nanoseconds: number;
+  };
+  updatedAt: {
+    _seconds: number;
+    _nanoseconds: number;
+  };
+}
+
+export interface AppointmentReminder {
+  id: string;
+  userId: string;
+  type?: string;
+  category: 'appointment';
+  title: string;
+  date: string;
+  time: string;
+  notes?: string;
+  description: string;
+  doctor: string;
+  location: string;
+  completed: boolean;
+  createdAt: {
+    _seconds: number;
+    _nanoseconds: number;
+  };
+  updatedAt: {
+    _seconds: number;
+    _nanoseconds: number;
+  };
+}
+
+export type Reminder = MedicationReminder | AppointmentReminder;
+
+export interface ReminderResponse {
+  reminders: Reminder[];
+}
 export interface HealthStore {
   healthTips: { tips: HealthTip[] };
   healthArticles: HealthArticle[];
   nearbyServices: NearbyService[];
+  reminders: ReminderResponse | null;
   loading: boolean;
-  fetchHealthTips: () => Promise<void>;
-  fetchHealthArticles: () => Promise<void>;
+
+  fetchHealthTips: (force?: boolean) => Promise<void>;
+  fetchHealthArticles: (force?: boolean) => Promise<void>;
   fetchNearbyServices: (latitude: number, longitude: number) => Promise<void>;
+  fetchEmergencyContacts: (force?: boolean) => Promise<void>;
+  setSelectedCountry: (countryCode: string) => void;
+  fetchReminders: () => Promise<void>;
+ 
   emergencyContacts: CountryEmergencyContacts[];
   selectedCountry: string;
-  setSelectedCountry: (countryCode: string) => void;
-  fetchEmergencyContacts: () => Promise<void>;
+
 }
+

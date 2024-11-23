@@ -19,7 +19,7 @@ const TypingAnimation: React.FC = () => {
     animations.forEach((dot, index) => animateDot(dot, index * 200));
 
     return () => animations.forEach(dot => dot.stopAnimation());
-  }, );
+  },[] );
 
   return (
     <View style={styles.container}>

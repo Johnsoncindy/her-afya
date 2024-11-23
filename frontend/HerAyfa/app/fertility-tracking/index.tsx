@@ -29,14 +29,17 @@ import { FertilityTips } from "@/components/FertilityTracker/FertilityTips";
     const [nextOvulation, setNextOvulation] = useState<Date | null>(null);
     const [fertileWindowStart, setFertileWindowStart] = useState<Date | null>(null);
     const [fertileWindowEnd, setFertileWindowEnd] = useState<Date | null>(null);
-    const [cycleLength, setCycleLength] = useState<number>(28); // default cycle length
+    const [cycleLength, setCycleLength] = useState<number>(28);
   
     useEffect(() => {
       const fetchFertilityData = async () => {
         setIsLoading(true);
         try {
           const response = (await getPeriodData(userId)).data;
+          console.log(response);
+          
           const data = response.data;
+          console.log(data);
           
           if (data) {
             const startDate = convertTimestampToDate(data.lastPeriodStart);
@@ -73,10 +76,14 @@ import { FertilityTips } from "@/components/FertilityTracker/FertilityTips";
       };
   
       fetchFertilityData();
-    }, [userId]);
+    }, []);
   
     if (isLoading) {
-      return <HeartLoading size={40} color={Colors[colorScheme].tint} />;
+      return (
+        <ThemedView style={styles.loadingContainer}>
+          <HeartLoading size={80} color={Colors[colorScheme].secondary} />
+        </ThemedView> 
+      )
     }
   
     if (error) {
@@ -155,4 +162,10 @@ import { FertilityTips } from "@/components/FertilityTracker/FertilityTips";
       marginTop: 16,
       marginBottom: 32,
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    }
   });

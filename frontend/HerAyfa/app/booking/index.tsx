@@ -7,6 +7,7 @@ import {
   Image,
   Platform,
   StatusBar,
+  Dimensions,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { useState, useEffect } from "react";
@@ -31,174 +32,172 @@ interface Booking {
   time: string;
   meetLink?: string;
   status: "pending" | "confirmed" | "completed" | "cancelled";
+  paymentStatus?: "pending" | "completed";
+  amount: number;
 }
 
-// Time slot selection component
-const TimeSlotPicker = ({
-  selectedDate,
-  slots,
-  onSelectSlot,
-}: {
-  selectedDate: string;
-  slots: TimeSlot[];
-  onSelectSlot: (slot: TimeSlot) => void;
-}) => {
+// Step indicator component
+const StepIndicator = ({ currentStep }: { currentStep: number }) => {
+  const steps = ["Select Date & Time", "Review", "Payment"];
   const colorScheme = useColorScheme();
 
   return (
-    <View style={styles.timeSlotsContainer}>
-      <ThemedText style={styles.sectionTitle}>Available Time Slots</ThemedText>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {slots.map((slot) => (
-          <Pressable
-            key={slot.id}
+    <View style={styles.stepContainer}>
+      {steps.map((step, index) => (
+        <View key={step} style={styles.stepWrapper}>
+          <View
             style={[
-              styles.timeSlot,
+              styles.stepCircle,
               {
-                backgroundColor: slot.available
-                  ? Colors[colorScheme ?? "light"].background
-                  : Colors[colorScheme ?? "light"].tabIconDefault + "40",
-                borderColor: Colors[colorScheme ?? "light"].tint,
+                backgroundColor:
+                  index <= currentStep
+                    ? Colors[colorScheme ?? "light"].tint
+                    : Colors[colorScheme ?? "light"].tabIconDefault + "40",
               },
             ]}
-            onPress={() => slot.available && onSelectSlot(slot)}
-            disabled={!slot.available}
           >
-            <ThemedText style={styles.timeText}>{slot.time}</ThemedText>
-          </Pressable>
-        ))}
-      </ScrollView>
+            <ThemedText
+              style={[styles.stepNumber, index <= currentStep && styles.activeStepText]}
+            >
+              {index + 1}
+            </ThemedText>
+          </View>
+          <ThemedText style={styles.stepText}>{step}</ThemedText>
+        </View>
+      ))}
     </View>
   );
 };
 
-// Calendar day component
-const CalendarDay = ({
-  date,
-  isSelected,
-  onSelect,
+// Calendar component with grid layout
+const Calendar = ({
+  selectedDate,
+  onSelectDate,
 }: {
-  date: Date;
-  isSelected: boolean;
-  onSelect: () => void;
+  selectedDate: Date | null;
+  onSelectDate: (date: Date) => void;
 }) => {
+  const [dates, setDates] = useState<Date[]>([]);
   const colorScheme = useColorScheme();
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  useEffect(() => {
+    const generateDates = () => {
+      const today = new Date();
+      const datesArray: Date[] = [];
+      for (let i = 0; i < 31; i++) {
+        const date = new Date();
+        date.setDate(today.getDate() + i);
+        datesArray.push(date);
+      }
+      setDates(datesArray);
+    };
+    generateDates();
+  }, []);
 
   return (
-    <Pressable
-      style={[
-        styles.calendarDay,
-        {
-          backgroundColor: isSelected
-            ? Colors[colorScheme ?? "light"].tint
-            : Colors[colorScheme ?? "light"].background,
-          borderColor: Colors[colorScheme ?? "light"].tint,
-        },
-      ]}
-      onPress={onSelect}
-    >
-      <ThemedText style={[styles.dayName, isSelected && styles.selectedText]}>
-        {dayNames[date.getDay()]}
-      </ThemedText>
-      <ThemedText style={[styles.dayNumber, isSelected && styles.selectedText]}>
-        {date.getDate()}
-      </ThemedText>
-    </Pressable>
+    <View style={styles.calendarGrid}>
+      {dates.map((date) => (
+        <Pressable
+          key={date.toISOString()}
+          style={[
+            styles.calendarCell,
+            {
+              backgroundColor:
+                selectedDate?.toDateString() === date.toDateString()
+                  ? Colors[colorScheme ?? "light"].tint
+                  : Colors[colorScheme ?? "light"].background,
+              borderColor: Colors[colorScheme ?? "light"].tint,
+            },
+          ]}
+          onPress={() => onSelectDate(date)}
+        >
+          <ThemedText
+            style={[
+              styles.calendarDayName,
+              selectedDate?.toDateString() === date.toDateString() &&
+                styles.selectedText,
+            ]}
+          >
+            {date.toLocaleDateString(undefined, { weekday: 'short' })}
+          </ThemedText>
+          <ThemedText
+            style={[
+              styles.calendarDate,
+              selectedDate?.toDateString() === date.toDateString() &&
+                styles.selectedText,
+            ]}
+          >
+            {date.getDate()}
+          </ThemedText>
+        </Pressable>
+      ))}
+    </View>
   );
 };
 
-// Booking confirmation component
-const BookingConfirmation = ({
+// Payment summary component
+const PaymentSummary = ({
   booking,
-  onClose,
+  onConfirmPayment,
 }: {
   booking: Booking;
-  onClose: () => void;
+  onConfirmPayment: () => void;
 }) => {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemedView style={styles.confirmationContainer}>
-      <TabBarIcon
-        name="checkmark-circle"
-        color={Colors[colorScheme ?? "light"].tint}
-        size={48}
-      />
-      <ThemedText style={styles.confirmationTitle}>
-        Booking Confirmed!
-      </ThemedText>
-      <ThemedText style={styles.confirmationText}>
-        Your appointment is scheduled for:
-      </ThemedText>
-      <ThemedText style={styles.confirmationDateTime}>
-        {booking.date} at {booking.time}
-      </ThemedText>
-      {booking.meetLink && (
-        <>
-          <ThemedText style={styles.confirmationText}>
-            Join your consultation via Google Meet:
+    <View style={styles.paymentContainer}>
+      <ThemedText style={styles.paymentTitle}>Payment Summary</ThemedText>
+      <View style={styles.paymentDetails}>
+        <View style={styles.paymentRow}>
+          <ThemedText>Consultation Fee</ThemedText>
+          <ThemedText>${booking.amount}</ThemedText>
+        </View>
+        <View style={styles.paymentRow}>
+          <ThemedText>Platform Fee</ThemedText>
+          <ThemedText>$2.00</ThemedText>
+        </View>
+        <View style={[styles.paymentRow, styles.totalRow]}>
+          <ThemedText style={styles.totalText}>Total</ThemedText>
+          <ThemedText style={styles.totalText}>
+            ${(booking.amount + 2).toFixed(2)}
           </ThemedText>
-          <Pressable
-            style={[
-              styles.meetLink,
-              { backgroundColor: Colors[colorScheme ?? "light"].tint },
-            ]}
-            onPress={() =>
-              Alert.alert("Open Meet", "Opening Google Meet link...")
-            }
-          >
-            <TabBarIcon name="videocam" color="#FFFFFF" />
-            <ThemedText style={styles.meetLinkText}>Join Meeting</ThemedText>
-          </Pressable>
-        </>
-      )}
+        </View>
+      </View>
       <Pressable
         style={[
-          styles.closeButton,
-          { backgroundColor: Colors[colorScheme ?? "light"].background },
+          styles.paymentButton,
+          { backgroundColor: Colors[colorScheme ?? "light"].tint },
         ]}
-        onPress={onClose}
+        onPress={onConfirmPayment}
       >
-        <ThemedText style={styles.closeButtonText}>Return to Chat</ThemedText>
+        <TabBarIcon name="card" color="#FFFFFF" size={24} />
+        <ThemedText style={styles.paymentButtonText}>Pay Now</ThemedText>
       </Pressable>
-    </ThemedView>
+    </View>
   );
 };
 
 export default function BookingScreen() {
   const colorScheme = useColorScheme();
   const router = useRouter();
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [booking, setBooking] = useState<Booking | null>(null);
-  const [calendarDays, setCalendarDays] = useState<Date[]>([]);
 
-  // Generate next 7 days for calendar
-  useEffect(() => {
-    const days = [];
-    const today = new Date();
-    for (let i = 0; i < 7; i++) {
-      const date = new Date();
-      date.setDate(today.getDate() + i);
-      days.push(date);
-    }
-    setCalendarDays(days);
-  }, []);
-
-  // Generate time slots for selected date
-  const generateTimeSlots = (date: string): TimeSlot[] => {
+  const generateTimeSlots = (date: Date): TimeSlot[] => {
     const slots = [];
-    const startHour = 9; // 9 AM
-    const endHour = 17; // 5 PM
+    const startHour = 9;
+    const endHour = 17;
 
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute of ["00", "30"]) {
         slots.push({
-          id: `${date}-${hour}${minute}`,
+          id: `${date.toDateString()}-${hour}${minute}`,
           time: `${hour}:${minute}`,
-          date: date,
-          available: Math.random() > 0.3, // Randomly mark some slots as unavailable
+          date: date.toLocaleDateString(),
+          available: Math.random() > 0.3,
         });
       }
     }
@@ -206,31 +205,55 @@ export default function BookingScreen() {
   };
 
   const handleDateSelect = (date: Date) => {
-    const formattedDate = date.toLocaleDateString();
-    setSelectedDate(formattedDate);
+    setSelectedDate(date);
     setSelectedSlot(null);
   };
 
-  const handleBooking = async () => {
+  const handleConfirmSlot = () => {
     if (!selectedSlot) return;
-
-    // Simulate booking process
+    
     const newBooking: Booking = {
       id: Date.now().toString(),
       date: selectedSlot.date,
       time: selectedSlot.time,
-      meetLink: "https://meet.google.com/xxx-yyyy-zzz",
       status: "pending",
+      paymentStatus: "pending",
+      amount: 10.00, // Base consultation fee
     };
+    
+    setBooking(newBooking);
+    setCurrentStep(1);
+  };
+
+  const handleConfirmBooking = () => {
+    setCurrentStep(2);
+  };
+
+  const handlePayment = async () => {
+    if (!booking) return;
 
     try {
-      // Save booking to storage
-      await AsyncStorage.setItem("currentBooking", JSON.stringify(newBooking));
-      setBooking(newBooking);
+      // Simulate payment processing
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      const paidBooking: Booking = {
+        ...booking,
+        status: "confirmed" as const,
+        paymentStatus: "completed" as const,
+        meetLink: "https://meet.google.com/xxx-yyyy-zzz"
+      };
+      
+      await AsyncStorage.setItem("currentBooking", JSON.stringify(paidBooking));
+      setBooking(paidBooking);
+      Alert.alert(
+        "Payment Successful",
+        "Your appointment has been confirmed. You will receive an email with the meeting details.",
+        [{ text: "OK", onPress: () => router.back() }]
+      );
     } catch (error) {
-      Alert.alert("Error", "Failed to save booking");
+      Alert.alert("Error", "Payment failed. Please try again.");
     }
-  };
+};
 
   return (
     <ThemedView style={styles.container}>
@@ -248,213 +271,339 @@ export default function BookingScreen() {
         }}
       />
 
-      {booking ? (
-        <BookingConfirmation booking={booking} onClose={() => router.back()} />
-      ) : (
-        <ScrollView>
-          <View style={styles.doctorInfo}>
-            <Image
-              source={require("../../assets/images/doc.webp")}
-              alt="Doctor profile"
-              style={styles.doctorImage}
-            />
+      <StepIndicator currentStep={currentStep} />
 
-            <ThemedText style={styles.doctorName}>
-              Dr. Rose-Marie T.T. Crusoe
-            </ThemedText>
-            <ThemedText style={styles.doctorSpecialty}>
-              General Practitioner
-            </ThemedText>
-            <ThemedText style={styles.doctorDetail}>
-              15 years experience
-            </ThemedText>
-          </View>
-
-          <View style={styles.calendarContainer}>
-            <ThemedText style={styles.sectionTitle}>Select Date</ThemedText>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.calendar}
-            >
-              {calendarDays.map((date) => (
-                <CalendarDay
-                  key={date.toISOString()}
-                  date={date}
-                  isSelected={date.toLocaleDateString() === selectedDate}
-                  onSelect={() => handleDateSelect(date)}
-                />
-              ))}
-            </ScrollView>
-          </View>
-
-          {selectedDate && (
-            <TimeSlotPicker
-              selectedDate={selectedDate}
-              slots={generateTimeSlots(selectedDate)}
-              onSelectSlot={setSelectedSlot}
-            />
-          )}
-
-          {selectedSlot && (
-            <View style={styles.bookingSection}>
-              <ThemedText style={styles.bookingSummary}>
-                Appointment on {selectedSlot.date} at {selectedSlot.time}
-              </ThemedText>
-              <Pressable
-                style={[
-                  styles.bookButton,
-                  { backgroundColor: Colors[colorScheme ?? "light"].tint },
-                ]}
-                onPress={handleBooking}
-              >
-                <ThemedText style={styles.bookButtonText}>
-                  Confirm Booking
+      <ScrollView>
+        {currentStep === 0 && (
+          <>
+            <View style={styles.doctorInfo}>
+              <Image
+                source={require("../../assets/images/doc.webp")}
+                style={styles.doctorImage}
+              />
+              <View style={styles.doctorTextInfo}>
+                <ThemedText style={styles.doctorName}>
+                  Dr. Rose-Marie T.T. Crusoe
                 </ThemedText>
-              </Pressable>
+                <ThemedText style={styles.doctorSpecialty}>
+                  General Practitioner
+                </ThemedText>
+                <ThemedText style={styles.doctorDetail}>
+                  15 years experience • $10/consultation
+                </ThemedText>
+              </View>
             </View>
-          )}
-        </ScrollView>
-      )}
+
+            <View style={styles.bookingContainer}>
+              <View style={styles.calendarContainer}>
+                <ThemedText style={styles.sectionTitle}>Select Date</ThemedText>
+                <Calendar
+                  selectedDate={selectedDate}
+                  onSelectDate={handleDateSelect}
+                />
+              </View>
+
+              {selectedDate && (
+                <View style={styles.timeSlotsContainer}>
+                  <ThemedText style={styles.sectionTitle}>
+                    Available Times
+                  </ThemedText>
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    {generateTimeSlots(selectedDate).map((slot) => (
+                      <Pressable
+                        key={slot.id}
+                        style={[
+                          styles.timeSlotItem,
+                          {
+                            backgroundColor: slot.available
+                              ? selectedSlot?.id === slot.id
+                                ? Colors[colorScheme ?? "light"].tint
+                                : Colors[colorScheme ?? "light"].background
+                              : Colors[colorScheme ?? "light"].tabIconDefault +
+                                "40",
+                            borderColor: Colors[colorScheme ?? "light"].tint,
+                          },
+                        ]}
+                        onPress={() => slot.available && setSelectedSlot(slot)}
+                        disabled={!slot.available}
+                      >
+                        <ThemedText
+                          style={[
+                            styles.timeText,
+                            selectedSlot?.id === slot.id && styles.selectedText,
+                          ]}
+                        >
+                          {slot.time}
+                        </ThemedText>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              {selectedSlot && (
+                <Pressable
+                  style={[
+                    styles.nextButton,
+                    { backgroundColor: Colors[colorScheme ?? "light"].tint },
+                  ]}
+                  onPress={handleConfirmSlot}
+                >
+                  <ThemedText style={styles.nextButtonText}>
+                    Confirm Time Slot
+                  </ThemedText>
+                </Pressable>
+              )}
+            </View>
+          </>
+        )}
+
+        {currentStep === 1 && booking && (
+          <View style={styles.reviewContainer}>
+            <ThemedText style={styles.reviewTitle}>Review Booking</ThemedText>
+            <View style={styles.reviewDetails}>
+              <View style={styles.reviewItem}>
+                <TabBarIcon
+                  name="calendar"
+                  color={Colors[colorScheme ?? "light"].text}
+                />
+                <ThemedText style={styles.reviewText}>
+                  {booking.date} at {booking.time}
+                </ThemedText>
+              </View>
+              <View style={styles.reviewItem}>
+                <TabBarIcon
+                  name="person"
+                  color={Colors[colorScheme ?? "light"].text}
+                />
+                <ThemedText style={styles.reviewText}>
+                  Dr. Rose-Marie T.T. Crusoe
+                </ThemedText>
+              </View>
+              <View style={styles.reviewItem}>
+                <TabBarIcon
+                  name="cash"
+                  color={Colors[colorScheme ?? "light"].text}
+                />
+                <ThemedText style={styles.reviewText}>
+                  $10.00 + $2.00 platform fee
+                </ThemedText>
+              </View>
+            </View>
+            <Pressable
+              style={[
+                styles.nextButton,
+                { backgroundColor: Colors[colorScheme ?? "light"].tint },
+              ]}
+              onPress={handleConfirmBooking}
+            >
+              <ThemedText style={styles.nextButtonText}>
+                Proceed to Payment
+              </ThemedText>
+            </Pressable>
+          </View>
+        )}
+
+        {currentStep === 2 && booking && (
+          <PaymentSummary booking={booking} onConfirmPayment={handlePayment} />
+        )}
+      </ScrollView>
     </ThemedView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    marginTop: Platform.OS === 'ios' ? 40 : StatusBar.currentHeight
-  },
-  doctorInfo: {
-    alignItems: "center",
-    padding: 20,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  doctorName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  doctorSpecialty: {
-    fontSize: 18,
-    marginBottom: 4,
-  },
-  doctorDetail: {
-    fontSize: 16,
-    opacity: 0.8,
-  },
-  calendarContainer: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  calendar: {
-    flexDirection: "row",
-  },
-  calendarDay: {
-    width: 70,
-    height: 80,
-    marginRight: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  selectedText: {
-    color: "#FFFFFF",
-  },
-  dayName: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  dayNumber: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  timeSlotsContainer: {
-    padding: 20,
-  },
-  timeSlot: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    marginRight: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  timeText: {
-    fontSize: 16,
-  },
-  bookingSection: {
-    padding: 20,
-    alignItems: "center",
-  },
-  bookingSummary: {
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  bookButton: {
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-    width: "100%",
-    alignItems: "center",
-  },
-  bookButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  confirmationContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  confirmationTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  confirmationText: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  confirmationDateTime: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 24,
-  },
-  meetLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  meetLinkText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginLeft: 8,
-  },
-  closeButton: {
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 24,
-  },
-  closeButtonText: {
-    fontSize: 16,
-  },
-  doctorImage: {
-    marginBottom: 8,
-    borderRadius: 12,
-    width: 150,
-    height: 150,
-  },
-});
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      marginTop: Platform.OS === "ios" ? 40 : StatusBar.currentHeight,
+    },
+    stepContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 20,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    stepWrapper: {
+      alignItems: "center",
+      flex: 1,
+    },
+    stepCircle: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 4,
+    },
+    stepNumber: {
+      fontSize: 14,
+      fontWeight: "bold",
+    },
+    activeStepText: {
+      color: "#FFFFFF",
+    },
+    stepText: {
+      fontSize: 12,
+      textAlign: "center",
+    },
+    doctorInfo: {
+      flexDirection: "row",
+      padding: 20,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    doctorImage: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      marginRight: 16,
+    },
+    doctorTextInfo: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    doctorName: {
+      fontSize: 20,
+      fontWeight: "bold",
+      marginBottom: 4,
+    },
+    doctorSpecialty: {
+      fontSize: 16,
+      marginBottom: 4,
+    },
+    doctorDetail: {
+      fontSize: 14,
+      opacity: 0.8,
+    },
+    bookingContainer: {
+      padding: 20,
+    },
+    calendarContainer: {
+      marginBottom: 20,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 12,
+    },
+    calendarGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      marginHorizontal: -5,
+    },
+    calendarCell: {
+      width: (Dimensions.get("window").width - 60) / 4,
+      height: 70,
+      margin: 5,
+      borderRadius: 8,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    calendarDayName: {
+      fontSize: 12,
+      marginBottom: 4,
+    },
+    calendarDate: {
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    selectedText: {
+      color: "#FFFFFF",
+    },
+    timeSlotsContainer: {
+      marginBottom: 20,
+      maxHeight: 300,
+    },
+    timeSlotItem: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      borderWidth: 1,
+      marginBottom: 8,
+    },
+    timeText: {
+      fontSize: 16,
+      textAlign: "center",
+    },
+    nextButton: {
+      paddingVertical: 16,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 20,
+    },
+    nextButtonText: {
+      color: "#FFFFFF",
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    reviewContainer: {
+      padding: 20,
+    },
+    reviewTitle: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginBottom: 20,
+    },
+    reviewDetails: {
+      backgroundColor: "rgba(0,0,0,0.05)",
+      borderRadius: 12,
+      padding: 16,
+    },
+    reviewItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: "rgba(0,0,0,0.1)",
+    },
+    reviewText: {
+      fontSize: 16,
+      marginLeft: 12,
+    },
+    paymentContainer: {
+      padding: 20,
+    },
+    paymentTitle: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginBottom: 20,
+    },
+    paymentDetails: {
+      backgroundColor: "rgba(0,0,0,0.05)",
+      borderRadius: 12,
+      padding: 16,
+    },
+    paymentRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: "rgba(0,0,0,0.1)",
+    },
+    totalRow: {
+      borderBottomWidth: 0,
+      marginTop: 8,
+      paddingBottom: 0,
+    },
+    totalText: {
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    paymentButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 16,
+      borderRadius: 8,
+      marginTop: 20,
+    },
+    paymentButtonText: {
+      color: "#FFFFFF",
+      fontSize: 16,
+      fontWeight: "bold",
+      marginLeft: 8,
+    }
+  });

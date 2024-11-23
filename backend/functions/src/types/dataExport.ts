@@ -10,12 +10,18 @@ export interface Appointment {
   location: string;
   notes?: string;
 }
-
 export interface Symptom {
   date: string;
   type: string;
-  severity: number;
+  severity: "mild" | "moderate" | "severe";
   notes?: string;
+}
+
+export interface KickCount {
+  date: Date;
+  startTime: Date;
+  endTime: Date;
+  count: number;
 }
 
 export interface PregnancyJourney {
@@ -24,6 +30,8 @@ export interface PregnancyJourney {
   weightEntries?: WeightEntry[];
   appointments?: Appointment[];
   symptoms?: Symptom[];
+  lastPeriodDate: Date;
+  kickCounts: KickCount[];
 }
 
 export interface CycleEntry {

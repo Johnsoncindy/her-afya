@@ -10,8 +10,6 @@ interface CycleHistoryProps {
   }
   
   export const CycleHistory = ({ cycles }: CycleHistoryProps) => (
-    console.log(cycles),
-    
     <ThemedView style={styles.card}>
       <ThemedText style={styles.cardTitle}>Cycle History</ThemedText>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>

@@ -5,7 +5,7 @@ export interface PregnancyData {
   lastPeriodDate: Date;
   currentWeek: number;
   symptoms: PregnancySymptom[];
-  appointments: Appointment[];
+  appointments: AppointmentReminder[];
   weightEntries: WeightEntry[];
   kickCounts: KickCount[];
   checklist: ChecklistItem[];
@@ -20,14 +20,50 @@ export interface PregnancySymptom {
   notes?: string;
 }
 
-export interface Appointment {
+// Base interface for all reminders
+interface BaseReminder {
+  userId: string;
   id: string;
+  title: string;
   date: Date;
+  time: string;
+  description: string;
+  completed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Specific reminder category type
+export type ReminderCategory = "appointment" | "medication";
+
+// Appointment specific types
+export type AppointmentType =
+  | "checkup"
+  | "ultrasound"
+  | "blood_test"
+  | "screening"
+  | "other";
+
+// Appointment reminder interface
+export interface AppointmentReminder extends BaseReminder {
+  category: "appointment";
   type: AppointmentType;
   doctor: string;
   location: string;
   notes: string;
 }
+
+// Medication reminder interface
+export interface MedicationReminder extends BaseReminder {
+  category: "medication";
+  medicationName: string;
+  dosage?: string;
+  frequency: "daily" | "weekly" | "monthly" | "as_needed";
+  endDate?: Date;
+}
+
+// Union type for handling both types of reminders
+export type Reminder = AppointmentReminder | MedicationReminder;
 
 export interface WeightEntry {
   date: Date;
@@ -59,13 +95,6 @@ export interface Memory {
 
 // Type Definitions
 export type MemoryType = "photo" | "note" | "milestone";
-
-export type AppointmentType =
-  | "checkup"
-  | "ultrasound"
-  | "blood_test"
-  | "screening"
-  | "other";
 
 export type ChecklistCategory =
   | "health"

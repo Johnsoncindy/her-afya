@@ -30,18 +30,18 @@ interface MessageData {
 
 const endpoint = "support";
 
-const createSupportRequest = (supportData: SupportRequest) =>
+export const createSupportRequest = (supportData: SupportRequest) =>
   client.post(`/${endpoint}/support-requests`, supportData);
-const getSupportRequests = async () =>
+export const getSupportRequests = async () =>
   client.get(`/${endpoint}/support-requests`);
 
-const sendMessage = async (messageData: Message) => {
+export const sendMessage = async (messageData: Message) => {
   const response = await client.post(`/${endpoint}/messages`, messageData);
   return response.data;
 };
-const getMessages = (supportRequestId: string, userId: string) =>
+export const getMessages = (supportRequestId: string, userId: string) =>
   client.get(`/${endpoint}/messages/${supportRequestId}/${userId}`);
-const getChatPreviews = async (userId: string) => {
+export const getChatPreviews = async (userId: string) => {
   try {
     const response = await client.get(`${endpoint}/chat-previews/${userId}`);
     return response.data;
@@ -50,12 +50,5 @@ const getChatPreviews = async (userId: string) => {
     throw new Error("Failed to fetch chat previews");
   }
 };
-const markMessageAsRead = (messageData: MessageData) => client.post(`${endpoint}/mark-read`, messageData);
-export {
-  createSupportRequest,
-  getSupportRequests,
-  sendMessage,
-  getMessages,
-  getChatPreviews,
-  markMessageAsRead,
-};
+export const markMessageAsRead = (messageData: MessageData) => client.post(`${endpoint}/mark-read`, messageData);
+

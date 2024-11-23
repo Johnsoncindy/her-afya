@@ -367,4 +367,10 @@ export const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 32,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  }
 });

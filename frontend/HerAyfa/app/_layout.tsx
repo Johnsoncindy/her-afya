@@ -55,7 +55,7 @@ const {setUser} = useUserStore();
        offlineAccess: true
       });
 
-  }, [expoPushToken, sendPushToken, setUser, webClientId]);
+  }, [expoPushToken]);
 
   if (!loaded) {
     return null;
@@ -70,6 +70,9 @@ const {setUser} = useUserStore();
         <Stack.Screen name="support-request/index" options={{headerShown: false}}/>
         <Stack.Screen name="period-tracker/index" options={{headerShown: false}}/>
         <Stack.Screen name="article-details/index" options={{headerShown: false}}/>
+        <Stack.Screen name="add-reminder/index" options={{ title: 'Add Medication Reminder' }}/>
+        <Stack.Screen name="help/index" options={{ title: 'Help Center' }}/>
+        <Stack.Screen name="about/index" options={{ title: 'About Her-Afya' }}/>
       </Stack>
     </ThemeProvider>
   );

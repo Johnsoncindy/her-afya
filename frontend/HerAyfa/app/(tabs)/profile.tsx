@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import React from "react";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Colors } from "@/constants/Colors";
@@ -21,6 +21,10 @@ import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { exportData } from "../api/data-export";
 import HeartLoading from "@/components/HeartLoading";
+
+interface FileSystemError extends Error {
+  code?: string;
+}
 
 // Setting Item Component
 const SettingItem = ({
@@ -107,36 +111,73 @@ export default function ProfileScreen() {
     try {
       // Get the PDF data
       const response = await exportData(user?.id ?? "");
-
-      // Create a temporary file path
-      const fileName = `health_report_${
-        new Date().toISOString().split("T")[0]
-      }.pdf`;
-      const filePath = `${FileSystem.documentDirectory}${fileName}`;
-
-      // Download the file
-      await FileSystem.downloadAsync(response.config.url ?? "", filePath, {
-        headers: response.config.headers,
-      });
-
-      // Share the file
-      if (await Sharing.isAvailableAsync()) {
+      
+      if (!response?.data?.data) {
+        throw new Error("No PDF data received");
+      }
+  
+      // Define file path based on platform
+      const baseDir = Platform.OS === 'ios' 
+        ? FileSystem.documentDirectory 
+        : FileSystem.cacheDirectory;
+        
+      if (!baseDir) {
+        throw new Error("No writable directory available");
+      }
+  
+      const fileName = `health_report_${new Date().toISOString().split("T")[0]}.pdf`;
+      const filePath = baseDir + fileName;
+  
+      try {
+        // Use response.data.data to get the actual base64 string
+        await FileSystem.writeAsStringAsync(filePath, response.data.data, {
+          encoding: FileSystem.EncodingType.Base64
+        });
+  
+        // Verify file exists and has content
+        const fileInfo = await FileSystem.getInfoAsync(filePath);
+        if (!fileInfo.exists || fileInfo.size === 0) {
+          throw new Error("File not properly written");
+        }
+  
+        // Share the file
+        const isShareAvailable = await Sharing.isAvailableAsync();
+        if (!isShareAvailable) {
+          throw new Error("Sharing is not available on this device");
+        }
+  
+        // Use only supported sharing options
         await Sharing.shareAsync(filePath, {
           mimeType: "application/pdf",
           dialogTitle: "Your Health Report",
-          UTI: "public.pdf",
+          UTI: Platform.OS === 'ios' ? "com.adobe.pdf" : undefined
         });
+  
+        // Clean up after successful share
+        await FileSystem.deleteAsync(filePath, { idempotent: true });
+  
+        Alert.alert(
+          "Success",
+          "Your health report has been generated and shared successfully."
+        );
+      } catch (error) {
+        console.error("File operation error:", error);
+        let errorMessage = "Failed to process the PDF file.";
+        
+        if (error instanceof Error) {
+          console.error('Detailed error:', error);
+          errorMessage = error.message;
+        }
+        
+        Alert.alert("Error", errorMessage);
       }
-
-      Alert.alert(
-        "Success",
-        "Your health report has been generated successfully."
-      );
     } catch (error) {
       console.error("Export error:", error);
       Alert.alert(
         "Export Failed",
-        "Unable to generate health report. Please try again."
+        error instanceof Error 
+          ? error.message 
+          : "Unable to generate health report. Please try again."
       );
     } finally {
       setLoading(false);
@@ -156,13 +197,6 @@ export default function ProfileScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen
-        options={{
-          headerTitle: "Profile",
-          headerShadowVisible: false,
-        }}
-      />
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -202,43 +236,6 @@ export default function ProfileScreen() {
           <ThemedText style={styles.userEmail}>{user?.email}</ThemedText>
         </ThemedView>
 
-        {/* Account Settings */}
-        <SectionHeader title="Account" />
-        <SettingItem
-          icon="person-outline"
-          label="Personal Information"
-          onPress={() => {}}
-        />
-        <SettingItem
-          icon="lock-closed-outline"
-          label="Security"
-          onPress={() => {}}
-        />
-        <SettingItem icon="shield-outline" label="Privacy" onPress={() => {}} />
-
-        {/* Preferences */}
-        <SectionHeader title="Preferences" />
-        <SettingItem
-          icon="notifications-outline"
-          label="Notifications"
-          showToggle
-          isEnabled={true}
-          onToggle={(value) => {}}
-        />
-        <SettingItem
-          icon="globe-outline"
-          label="Language"
-          value="English"
-          onPress={() => {}}
-        />
-        <SettingItem
-          icon="moon-outline"
-          label="Dark Mode"
-          showToggle
-          isEnabled={colorScheme === "dark"}
-          onToggle={(value) => {}}
-        />
-
         {/* Data & Storage */}
         <SectionHeader title="Data & Storage" />
         <SettingItem
@@ -253,12 +250,12 @@ export default function ProfileScreen() {
         <SettingItem
           icon="help-circle-outline"
           label="Help Center"
-          onPress={() => {}}
+          onPress={() => router.push("/help")}
         />
         <SettingItem
           icon="information-circle-outline"
           label="About"
-          onPress={() => {}}
+          onPress={() => router.push("/about")}
         />
         <SettingItem icon="exit" label="Logout" onPress={signOut} />
       </ScrollView>
@@ -269,7 +266,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: Platform.OS === "ios" ? 40 : StatusBar.currentHeight,
   },
   scrollView: {
     flex: 1,

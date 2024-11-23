@@ -21,7 +21,7 @@ export default function AuthIndex() {
     return null;
   }
   if (isAuthenticated) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/home" />;
   } else {
     return <Redirect href="/login" />;
   }

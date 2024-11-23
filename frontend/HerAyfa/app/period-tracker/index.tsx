@@ -46,6 +46,8 @@ import {
 } from "../api/period-tracker/period-tracker";
 import useUserStore from "@/store/userStore";
 import HeartLoading from "@/components/HeartLoading";
+import { usePeriodStore } from "@/store/periodStore";
+import { handlePeriodData } from "@/components/PeriodTracker/handlePeriodData";
 
 export default function PeriodTrackerScreen() {
   const colorScheme = useColorScheme() as ColorScheme;
@@ -95,72 +97,113 @@ export default function PeriodTrackerScreen() {
     if (lastPeriodStart && calendarId) {
       handleCreateEvents();
     }
-  }, [lastPeriodStart, calendarId]);
+  }, []);
 
   useEffect(() => {
-    const fetchPeriodData = async () => {
-      setIsLoading(true);
-      try {
-        const response = (await getPeriodData(userId)).data;
-        const data = response.data;
+    // Type guard to validate period data structure
+const isPeriodDataValid = (data: any): boolean => {
+  return (
+    data &&
+    typeof data === 'object' &&
+    'lastPeriodStart' in data &&
+    'periodEndDate' in data &&
+    'cycleHistory' in data &&
+    Array.isArray(data.cycleHistory)
+  );
+};
 
-        if (data) {
-          // Convert timestamps using the helper function
-          const startDate = convertTimestampToDate(data.lastPeriodStart);
-          const endDate = convertTimestampToDate(data.periodEndDate);
+// Helper function to safely convert Firestore timestamp to Date
+const safeTimestampToDate = (timestamp: any): Date | null => {
+  if (!timestamp) return null;
+  
+  // Handle Firestore timestamp format
+  if (timestamp._seconds !== undefined && timestamp._nanoseconds !== undefined) {
+    return new Date(timestamp._seconds * 1000);
+  }
+  
+  // Handle regular date strings or timestamps
+  if (timestamp instanceof Date || typeof timestamp === 'string' || typeof timestamp === 'number') {
+    return new Date(timestamp);
+  }
+  
+  return null;
+};
 
-          setLastPeriodStart(startDate);
-          setPeriodEndDate(endDate);
+// Updated fetchPeriodData function
+const fetchPeriodData = async () => {
+  setIsLoading(true);
+  try {
+    const response = (await getPeriodData(userId)).data;
+    const data = response.data;
 
-          // Fix the cycle history mapping
-          setCycleHistory(
-            data.cycleHistory?.map((cycle: any) => ({
-              ...cycle,
-              startDate: convertTimestampToDate(cycle.startDate) || new Date(),
-              endDate: convertTimestampToDate(cycle.endDate) || new Date(),
-              symptoms: Array.isArray(cycle.symptoms)
-                ? cycle.symptoms.map((symptom: any) => ({
-                    id: symptom.id as SymptomId,
-                    name: symptom.name as SymptomName,
-                    intensity: symptom.intensity as 1 | 2 | 3,
-                    date: convertTimestampToDate(symptom.date) || new Date(),
-                  }))
-                : [],
-            })) || []
-          );
+    if (!isPeriodDataValid(data)) {
+      console.error('Invalid data structure:', data);
+      throw new Error('Invalid data structure received from server');
+    }
 
-          // Fix the symptoms mapping
-          const allSymptoms =
-            data.cycleHistory?.flatMap((cycle: any) =>
-              Array.isArray(cycle.symptoms)
-                ? cycle.symptoms.map((symptom: any) => ({
-                    id: symptom.id as SymptomId,
-                    name: symptom.name as SymptomName,
-                    intensity: symptom.intensity as 1 | 2 | 3,
-                    date: convertTimestampToDate(symptom.date) || new Date(),
-                  }))
-                : []
-            ) || [];
+    // Safely convert timestamps
+    const startDate = safeTimestampToDate(data.lastPeriodStart);
+    const endDate = safeTimestampToDate(data.periodEndDate);
 
-          setSelectedSymptoms(allSymptoms);
+    setLastPeriodStart(startDate);
+    setPeriodEndDate(endDate);
 
-          if (data.insights) {
-            setAverageCycleLength(data.insights.averageCycleLength);
-            setCycleVariation(data.insights.cycleVariation);
-          }
-        }
-      } catch (error: any) {
-        if (error.response?.status !== 404) {
-          setError("Something went wrong");
-          console.error("Error fetching period data:", error);
-        }
-      } finally {
-        setIsLoading(false);
+    // Safely process cycle history
+    const processedCycleHistory = data.cycleHistory.map((cycle: any) => {
+      // Validate cycle data
+      if (!cycle || typeof cycle !== 'object') {
+        console.warn('Invalid cycle data:', cycle);
+        return null;
       }
-    };
 
+      return {
+        startDate: safeTimestampToDate(cycle.startDate) || new Date(),
+        endDate: safeTimestampToDate(cycle.endDate) || new Date(),
+        length: cycle.length || 0,
+        symptoms: Array.isArray(cycle.symptoms)
+          ? cycle.symptoms.map((symptom: any) => ({
+              id: symptom.id as SymptomId,
+              name: symptom.name as SymptomName,
+              intensity: Math.min(Math.max(1, Number(symptom.intensity)), 3) as 1 | 2 | 3,
+              date: safeTimestampToDate(symptom.date) || new Date(),
+            }))
+          : [],
+      };
+    }).filter(Boolean); // Remove any null entries
+
+    setCycleHistory(processedCycleHistory);
+
+    // Process symptoms across all cycles
+    const allSymptoms = processedCycleHistory
+      .flatMap((cycle: CycleData) => cycle?.symptoms || [])
+      .filter((symptom: Symptom) => 
+        symptom && 
+        typeof symptom === 'object' && 
+        'id' in symptom && 
+        'name' in symptom && 
+        'intensity' in symptom && 
+        'date' in symptom
+      );
+
+    setSelectedSymptoms(allSymptoms);
+
+    // Safely process insights
+    if (data.insights && typeof data.insights === 'object') {
+      setAverageCycleLength(Number(data.insights.averageCycleLength) || null);
+      setCycleVariation(Number(data.insights.cycleVariation) || null);
+    }
+  } catch (error: any) {
+    if (error.response?.status !== 404) {
+      setError("Error loading period data. Please try again.");
+      console.error("Error fetching period data:", error);
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
+  
     fetchPeriodData();
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
     if (cycleHistory.length >= 2) {
@@ -189,7 +232,7 @@ export default function PeriodTrackerScreen() {
 
       updateInsightsData();
     }
-  }, [cycleHistory, userId]);
+  }, []);
 
   const requestCalendarPermissions = async () => {
     try {
@@ -442,7 +485,11 @@ export default function PeriodTrackerScreen() {
   };
 
   if (isLoading) {
-    return <HeartLoading size={40} color={Colors[colorScheme].tint} />;
+    return (
+      <ThemedView style={styles.loadingContainer}>
+        <HeartLoading size={80} color={Colors[colorScheme].secondary} />
+      </ThemedView> 
+    )
   }
   if (error) {
     return (

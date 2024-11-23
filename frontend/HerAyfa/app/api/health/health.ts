@@ -32,14 +32,12 @@ interface BotResponse {
 interface UserMessage {
   userMessage: string;
 }
-
-
   
-const getHealthTips = () => client.get('/health/health-tips');
-const getHealthResources = () => client.get('/resources/health-articles');
-const chatWithHealthBot = (userMessage: UserMessage) => client.post('/api/chat', userMessage);
+export const getHealthTips = () => client.get('/health/health-tips');
+export const getHealthResources = () => client.get('/resources/health-articles');
+export const chatWithHealthBot = (userMessage: UserMessage) => client.post('/api/chat', userMessage);
    
-const getNearbyHealthServices = async (latitude: number, longitude: number) => {
+export const getNearbyHealthServices = async (latitude: number, longitude: number) => {
     try {
       const response = await axios.get(
         `https://maps.googleapis.com/maps/api/place/nearbysearch/json`,
@@ -60,16 +58,7 @@ const getNearbyHealthServices = async (latitude: number, longitude: number) => {
       throw error;
     }
   };
-const getEmergencyContacts = () => client.get('/emergency-contacts');
+export const getEmergencyContacts = () => client.get('/emergency-contacts');
 
-const createUser = (user: FirebaseAuthTypes.User) => client.post('/auth/create-user', {user}); 
-const sendPushTokenToServer = (userId: string, pushToken: string) => client.put(`/auth/${userId}/push-token`, {pushToken: pushToken})
-export {
-    getHealthTips,
-    getHealthResources,
-    chatWithHealthBot,
-    getNearbyHealthServices,
-    getEmergencyContacts,
-    createUser,
-    sendPushTokenToServer,
-}
+export const createUser = (user: FirebaseAuthTypes.User) => client.post('/auth/create-user', {user}); 
+export const sendPushTokenToServer = (userId: string, pushToken: string) => client.put(`/auth/${userId}/push-token`, {pushToken: pushToken})
