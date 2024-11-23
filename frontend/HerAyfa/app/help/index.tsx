@@ -6,7 +6,6 @@ import {
   Linking,
   Alert 
 } from "react-native";
-import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { ThemedText } from "@/components/ThemedText";
@@ -64,19 +63,19 @@ export default function HelpCenterScreen() {
       title: "FAQs",
       description: "Find answers to common questions",
       icon: "help-circle",
-      action: () => Linking.openURL("https://herafya.com/faqs")
+      action: () => Linking.openURL("https://her-afya.vercel.app/#faqs")
     },
     {
       title: "Privacy Policy",
       description: "Read our privacy policy",
       icon: "shield-checkmark",
-      action: () => Linking.openURL("https://herafya.com/privacy")
+      action: () => Linking.openURL("https://her-afya.vercel.app/privacy")
     },
     {
       title: "Terms of Service",
       description: "View our terms of service",
       icon: "document-text",
-      action: () => Linking.openURL("https://herafya.com/terms")
+      action: () => Linking.openURL("https://her-afya.vercel.app/terms")
     }
   ];
 

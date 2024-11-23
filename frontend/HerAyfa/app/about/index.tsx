@@ -7,7 +7,6 @@ import {
   Pressable,
   Linking 
 } from "react-native";
-import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { 
   FadeInDown,
@@ -156,7 +155,7 @@ export default function AboutScreen() {
           </ThemedText>
           <Pressable
             style={[styles.button]}
-            onPress={() => Linking.openURL('https://herafya.com')}
+            onPress={() => Linking.openURL('https://her-afya.vercel.app')}
           >
             <ThemedText style={styles.buttonText}>
               Learn More

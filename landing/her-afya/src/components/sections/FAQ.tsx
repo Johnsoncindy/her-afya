@@ -97,7 +97,7 @@ export default function FAQ() {
   })).filter(category => category.items.length > 0)
 
   return (
-    <section className="py-20 bg-gradient-to-b from-custom-background to-custom-background/50 dark:from-custom-darkBg dark:to-custom-darkBg/50">
+    <section id='faqs' className="py-20 bg-gradient-to-b from-custom-background to-custom-background/50 dark:from-custom-darkBg dark:to-custom-darkBg/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
