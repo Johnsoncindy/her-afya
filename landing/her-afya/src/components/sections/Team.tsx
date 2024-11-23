@@ -38,7 +38,7 @@ export default function Team() {
       }
     ]
 
-    const advisors = [
+  /*   const advisors = [
       {
         name: "Dr. RoseMarie T.T. Crusoe",
         role: "Medical Consultant",
@@ -49,7 +49,7 @@ export default function Team() {
           facebook: "https://www.linkedin.com/in/danielle-wornee-1a4b4316a"
         }
       }
-    ]
+    ] */
   
     const teamMembers = [
       { role: "Design", count: 2 },
@@ -189,7 +189,7 @@ export default function Team() {
           </motion.div>
 
           {/* Medical Advisors */}
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -245,7 +245,7 @@ export default function Team() {
                 </motion.div>
               ))}
             </div>
-          </motion.div>
+          </motion.div> */}
   
           {/* Team Composition */}
           <div className="bg-tint-light/10 dark:bg-tint-dark/10 rounded-2xl p-12">
