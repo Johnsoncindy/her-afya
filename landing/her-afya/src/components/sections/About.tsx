@@ -8,25 +8,37 @@ export default function About() {
       icon: Heart,
       title: "Empathy",
       description: "Understanding the unique challenges faced by women and girls worldwide.",
-      color: "rose"
+      bgColor: "bg-rose-100",
+      darkBgColor: "dark:bg-rose-900/20",
+      textColor: "text-rose-600",
+      darkTextColor: "dark:text-rose-400"
     },
     {
       icon: Lightbulb,
       title: "Innovation",
       description: "Using technology to create impactful and sustainable solutions.",
-      color: "amber"
+      bgColor: "bg-amber-100",
+      darkBgColor: "dark:bg-amber-900/20",
+      textColor: "text-amber-600",
+      darkTextColor: "dark:text-amber-400"
     },
     {
       icon: Users,
       title: "Collaboration",
       description: "Working together to build a supportive and inclusive platform.",
-      color: "emerald"
+      bgColor: "bg-emerald-100",
+      darkBgColor: "dark:bg-emerald-900/20",
+      textColor: "text-emerald-600",
+      darkTextColor: "dark:text-emerald-400"
     },
     {
       icon: Globe,
       title: "Accessibility",
       description: "Making health technology accessible to everyone.",
-      color: "blue"
+      bgColor: "bg-blue-100",
+      darkBgColor: "dark:bg-blue-900/20",
+      textColor: "text-blue-600",
+      darkTextColor: "dark:text-blue-400"
     }
   ]
 
@@ -63,9 +75,9 @@ export default function About() {
               transition={{ delay: index * 0.2 }}
               className="group relative bg-white dark:bg-custom-darkBg/50 rounded-2xl p-6 hover:shadow-xl transition-all duration-300"
             >
-              <div className={`w-12 h-12 rounded-xl bg-${value.color}-100 dark:bg-${value.color}-900/20 
+              <div className={`w-12 h-12 rounded-xl ${value.bgColor} ${value.darkBgColor} 
                               flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                <value.icon className={`w-6 h-6 text-${value.color}-600 dark:text-${value.color}-400`} />
+                <value.icon className={`w-6 h-6 ${value.textColor} ${value.darkTextColor}`} />
               </div>
               <h3 className="text-xl font-semibold text-custom-text dark:text-custom-darkText mb-2">
                 {value.title}
