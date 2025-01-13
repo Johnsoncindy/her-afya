@@ -108,6 +108,7 @@ export default function Team() {
                         src={founder.image}
                         alt={founder.name}
                         fill
+                        width={50}
                         className='object-contain'
                       />
                     </div>
