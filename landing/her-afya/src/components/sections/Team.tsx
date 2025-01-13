@@ -103,7 +103,7 @@ export default function Team() {
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-tint-light to-secondary-light dark:from-tint-dark dark:to-secondary-dark rounded-2xl blur opacity-30 group-hover:opacity-100 transition duration-1000"></div>
                 <div className="relative bg-white dark:bg-custom-darkBg/50 rounded-2xl p-6">
                   <div className="flex flex-col md:flex-row gap-6 items-center">
-                    <div className="relative w-40 h-40 rounded-xl overflow-hidden">
+                    <div className="relative w-60 h-60 rounded-xl overflow-hidden">
                       <Image
                         src={founder.image}
                         alt={founder.name}
@@ -161,7 +161,7 @@ export default function Team() {
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-tint-light/80 to-secondary-light/80 dark:from-tint-dark/80 dark:to-secondary-dark/80 rounded-2xl blur opacity-30 group-hover:opacity-100 transition duration-1000"></div>
                   <div className="relative bg-white dark:bg-custom-darkBg/50 rounded-2xl p-8">
                     <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="relative w-40 h-40 rounded-xl overflow-hidden">
+                      <div className="relative w-60 h-60 rounded-xl overflow-hidden">
                         <Image
                           src={member.image}
                           alt={member.name}
@@ -220,7 +220,7 @@ export default function Team() {
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-secondary-light to-tint-light dark:from-secondary-dark dark:to-tint-dark rounded-2xl blur opacity-30 group-hover:opacity-100 transition duration-1000"></div>
                   <div className="relative bg-white dark:bg-custom-darkBg/50 rounded-2xl p-8">
                     <div className="flex flex-col md:flex-row gap-8 items-center">
-                      <div className="relative w-40 h-40 rounded-xl overflow-hidden">
+                      <div className="relative w-60 h-60 rounded-xl overflow-hidden">
                         <Image
                           src={advisor.image}
                           alt={advisor.name}
