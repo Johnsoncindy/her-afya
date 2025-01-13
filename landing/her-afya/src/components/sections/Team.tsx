@@ -108,7 +108,7 @@ export default function Team() {
                         src={founder.image}
                         alt={founder.name}
                         fill
-                        className="object-cover"
+                        className='object-contain'
                       />
                     </div>
                     <div className="text-center md:text-left">
@@ -166,7 +166,7 @@ export default function Team() {
                           src={member.image}
                           alt={member.name}
                           fill
-                          className="object-cover"
+                          className='object-contain'
                         />
                       </div>
                       <div className="text-center md:text-left">
@@ -225,7 +225,7 @@ export default function Team() {
                           src={advisor.image}
                           alt={advisor.name}
                           fill
-                          className="object-cover"
+                          className='object-contain'
                         />
                       </div>
                       <div className="text-center md:text-left">
