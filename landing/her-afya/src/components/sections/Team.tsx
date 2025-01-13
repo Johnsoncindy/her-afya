@@ -3,28 +3,38 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 
 export default function Team() {
-    const founders = [
-      {
-        name: "Cindy Tetama Johnson",
-        role: "Co-Founder & Visionary",
-        image: "/images/team/cindy.jpeg",
-        bio: "Computer Science student with a deep passion for creating impactful solutions. Inspired by her own experiences and the challenges faced by women globally.",
-        socials: {
-          twitter: "https://x.com/JohnsonCindyT",
-          github: "https://github.com/Johnsoncindy"
-        }
-      },
-      {
-        name: "Geitodyu Henrique Crusoe",
-        role: "Co-Founder & Lead Developer",
-        image: "/images/team/henrique.jpeg",
-        bio: "Software & Civil Engineer who combines his expertise in engineering and technology to ensure HerAfya's robust development.",
-        socials: {
-          linkedin: "https://www.linkedin.com/in/crusoehenrique",
-          github: "https://github.com/cruso003"
-        }
+  const founders = [
+    {
+      name: "Cindy Tetama Johnson",
+      role: "Co-Founder & Visionary",
+      image: "/images/team/cindy.jpeg",
+      bio: "Computer Science student with a deep passion for creating impactful solutions. Inspired by her own experiences and the challenges faced by women globally.",
+      socials: {
+        twitter: "https://x.com/JohnsonCindyT",
+        github: "https://github.com/Johnsoncindy"
       }
-    ]
+    },
+    {
+      name: "Geitodyu Henrique Crusoe",
+      role: "Co-Founder & Lead Developer",
+      image: "/images/team/henrique.jpeg",
+      bio: "Software & Civil Engineer who combines his expertise in engineering and technology to ensure HerAfya's robust development.",
+      socials: {
+        linkedin: "https://www.linkedin.com/in/crusoehenrique",
+        github: "https://github.com/cruso003"
+      }
+    },
+    {
+      name: "George S Mulbah II",
+      role: "Co-Founder & Technology Lead",
+      image: "/images/team/george.jpeg",
+      bio: "Engineering enthusiast and tech instructor with an Associate Degree in Electronics Engineering. Experienced backend developer and startup founder with expertise in computer programming and electronics engineering.",
+      socials: {
+        github: "https://github.com/sir-george2500",
+        linkedin: "https://www.linkedin.com/in/george-s-mulbah-ii-3a571b195"
+      }
+    }
+  ]
 
     const coreTeam = [
       {
@@ -38,7 +48,7 @@ export default function Team() {
       }
     ]
 
-  /*   const advisors = [
+    const advisors = [
       {
         name: "Dr. RoseMarie T.T. Crusoe",
         role: "Medical Consultant",
@@ -46,16 +56,16 @@ export default function Team() {
         bio: "Licensed Medical Doctor providing expert healthcare consultation and guidance to ensure HerAfya delivers accurate and reliable medical information.",
         credentials: "MD",
         socials: {
-          facebook: "https://www.linkedin.com/in/danielle-wornee-1a4b4316a"
+          facebook: "https://web.facebook.com/rosemariegodgeturback.tuopay"
         }
       }
-    ] */
+    ]
   
     const teamMembers = [
-      { role: "Design", count: 2 },
-      { role: "Development", count: 2 },
+      { role: "Design", count: 3 },
+      { role: "Development", count: 3 },
       { role: "Healthcare", count: 2 },
-      { role: "Support", count: 4 }
+      { role: "Support", count: 5 }
     ]
     
     return (
@@ -189,7 +199,7 @@ export default function Team() {
           </motion.div>
 
           {/* Medical Advisors */}
-          {/* <motion.div
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -245,7 +255,7 @@ export default function Team() {
                 </motion.div>
               ))}
             </div>
-          </motion.div> */}
+          </motion.div>
   
           {/* Team Composition */}
           <div className="bg-custom-background/30 dark:bg-custom-darkBg/30 rounded-2xl p-12">
